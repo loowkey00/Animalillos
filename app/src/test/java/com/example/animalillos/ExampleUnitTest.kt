@@ -1,17 +1,15 @@
 package com.example.animalillos
 
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
-import org.junit.Assert.*
-
-/**
- * Example local unit test, which will execute on the development machine (host).
- *
- * See [testing documentation](http://d.android.com/tools/testing).
- */
 class ExampleUnitTest {
     @Test
-    fun addition_isCorrect() {
-        assertEquals(4, 2 + 2)
+    fun reminderStore_roundTrip() {
+        val original = listOf(
+            PetReminder(1L, "Firulais", "Medicamento 1, 2 tazas de comida", listOf("08:00", "12:00"))
+        )
+        val decoded = ReminderStore.decode(ReminderStore.encode(original))
+        assertEquals(original, decoded)
     }
 }
