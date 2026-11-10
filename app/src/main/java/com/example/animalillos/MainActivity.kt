@@ -55,15 +55,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.example.animalillos.ui.theme.Agrandir
 import com.example.animalillos.ui.theme.AnimalillosTheme
+import com.example.animalillos.ui.theme.AristaPro
+import com.example.animalillos.ui.theme.OpenSans
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Calendar
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.Dp
 
 private val GreenPrimary = Color(0xFF2D5E18)
 private val GreenMuted = Color(0xFF7D9A6D)
@@ -143,7 +158,10 @@ class MainActivity : ComponentActivity() {
                 val reminders = remember { mutableStateListOf<PetReminder>().apply { addAll(ReminderStore.load(context)) } }
                 var editingReminder by remember { mutableStateOf<PetReminder?>(null) }
 
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    containerColor = if (screen == 1) GreenPrimary else CreamBg
+                ) { innerPadding ->
                     Box(modifier = Modifier.padding(innerPadding).fillMaxSize()) {
                         when (screen) {
                             1 -> StartScreen(onStart = { screen = 2 })
@@ -236,44 +254,169 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+private val CardShadow = Color(0xFFB8C4A8)
+private val NoteBorder = Color(0xFFE8E4DE)
+
+@Composable
+private fun WhiteCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(10.dp, RoundedCornerShape(22.dp), ambientColor = CardShadow, spotColor = CardShadow)
+            .background(Color.White, RoundedCornerShape(22.dp))
+            .padding(horizontal = 14.dp, vertical = 16.dp)
+    ) { content() }
+}
+
+@Composable
+private fun Pill(
+    text: String,
+    background: Color,
+    textColor: Color,
+    modifier: Modifier = Modifier,
+    height: Dp = 34.dp,
+    radius: Dp = 50.dp,
+    bold: Boolean = true,
+    align: Alignment = Alignment.Center,
+    border: Color? = null
+) {
+    val shape = RoundedCornerShape(radius)
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(height)
+            .background(background, shape)
+            .then(if (border != null) Modifier.border(1.dp, border, shape) else Modifier)
+            .padding(horizontal = 14.dp),
+        contentAlignment = align
+    ) {
+        Text(
+            text = text,
+            color = textColor,
+            fontSize = 13.sp,
+            fontWeight = if (bold) FontWeight.SemiBold else FontWeight.Normal,
+            maxLines = 1
+        )
+    }
+}
+
+@Composable
+private fun PillTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    background: Color,
+    textColor: Color,
+    modifier: Modifier = Modifier,
+    border: Color? = null,
+    textAlign: TextAlign = TextAlign.Start,
+    singleLine: Boolean = true,
+    minHeight: Dp = 34.dp,
+    radius: Dp = 50.dp
+) {
+    val shape = RoundedCornerShape(radius)
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        singleLine = singleLine,
+        textStyle = TextStyle(color = textColor, fontSize = 13.sp, textAlign = textAlign, fontFamily = OpenSans),
+        cursorBrush = SolidColor(GreenPrimary),
+        modifier = modifier.fillMaxWidth(),
+        decorationBox = { inner ->
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = minHeight)
+                    .background(background, shape)
+                    .then(if (border != null) Modifier.border(1.dp, border, shape) else Modifier)
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                contentAlignment = if (singleLine) Alignment.CenterStart else Alignment.TopStart
+            ) {
+                if (value.isEmpty()) {
+                    Text(
+                        text = placeholder,
+                        color = textColor.copy(alpha = 0.75f),
+                        fontSize = 13.sp,
+                        textAlign = textAlign,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+                inner()
+            }
+        }
+    )
+}
+
+@Composable
+private fun BigOutlinedButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+    OutlinedButton(
+        onClick = onClick,
+        shape = RoundedCornerShape(50),
+        border = BorderStroke(1.5.dp, GreenPrimary),
+        colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White, contentColor = Color.Black),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(58.dp)
+            .shadow(6.dp, RoundedCornerShape(50), ambientColor = CardShadow, spotColor = CardShadow)
+    ) {
+        Text(text = text, fontSize = 17.sp)
+    }
+}
+
 @Composable
 fun StartScreen(onStart: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(GreenPrimary)
-            .padding(32.dp),
+            .padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(
-            text = "Time to\n🐾 Eat!",
-            color = Color.White,
-            fontSize = 54.sp,
-            lineHeight = 60.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(36.dp))
+        Column(horizontalAlignment = Alignment.Start) {
+            Text(
+                text = "Time to",
+                color = Color.White,
+                fontSize = 60.sp,
+                lineHeight = 64.sp,
+                fontFamily = AristaPro
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(R.drawable.paw),
+                    contentDescription = null,
+                    modifier = Modifier.size(52.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = "Eat!",
+                    color = Color.White,
+                    fontSize = 60.sp,
+                    lineHeight = 64.sp,
+                    fontFamily = AristaPro
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(40.dp))
         Text(
             text = "Vamos a alimentar a\ntu mascota",
             color = Color.White,
-            fontSize = 20.sp,
+            fontSize = 16.sp,
+            fontFamily = Agrandir,
+            lineHeight = 22.sp,
             textAlign = TextAlign.Center
         )
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(32.dp))
         Button(
             onClick = onStart,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color.White,
-                contentColor = GreenPrimary
-            ),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = GreenPrimary),
             shape = RoundedCornerShape(50),
+            contentPadding = PaddingValues(0.dp),
             modifier = Modifier
-                .fillMaxWidth(0.75f)
-                .height(56.dp)
+                .fillMaxWidth(0.65f)
+                .height(46.dp)
         ) {
-            Text(text = "Iniciar", fontSize = 22.sp, fontWeight = FontWeight.Medium)
+            Text(text = "Iniciar", fontSize = 22.sp, fontFamily = AristaPro, color = Color(0xFF1B3A0E))
         }
     }
 }
@@ -299,69 +442,52 @@ fun MenuScreen(
             .fillMaxSize()
             .background(CreamBg)
             .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+            .padding(horizontal = 20.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Card(
-            shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedTextField(
+        WhiteCard {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                PillTextField(
                     value = name,
                     onValueChange = { name = it },
-                    placeholder = { Text("Nombre de la mascota") },
-                    singleLine = true,
-                    shape = RoundedCornerShape(50),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = FieldBeige,
-                        unfocusedContainerColor = FieldBeige,
-                        focusedBorderColor = Color.Transparent,
-                        unfocusedBorderColor = Color.Transparent
-                    ),
-                    modifier = Modifier.fillMaxWidth()
+                    placeholder = "Nombre de la mascota",
+                    background = FieldBeige,
+                    textColor = Color(0xFF3A3A3A)
                 )
 
                 times.forEachIndexed { index, time ->
-                    Button(
-                        onClick = {
-                            val parts = time.split(":").map { it.toInt() }
-                            TimePickerDialog(context, { _, h, m ->
-                                times[index] = "%02d:%02d".format(h, m)
-                            }, parts[0], parts[1], true).show()
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = GreenPrimary,
-                            contentColor = Color.White
-                        ),
-                        shape = RoundedCornerShape(50),
-                        modifier = Modifier.fillMaxWidth()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(34.dp)
+                            .background(GreenPrimary, RoundedCornerShape(50))
+                            .clickable {
+                                val parts = time.split(":").map { it.toInt() }
+                                TimePickerDialog(context, { _, h, m ->
+                                    times[index] = "%02d:%02d".format(h, m)
+                                }, parts[0], parts[1], true).show()
+                            },
+                        contentAlignment = Alignment.Center
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Spacer(modifier = Modifier.padding(horizontal = 8.dp))
-                            Text("$time hrs", fontWeight = FontWeight.Bold)
-                            Text(
-                                text = "✕",
-                                modifier = Modifier
-                                    .clickable { times.removeAt(index) }
-                                    .padding(horizontal = 8.dp)
-                            )
-                        }
+                        Text("$time hrs", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            text = "✕",
+                            color = Color.White.copy(alpha = 0.7f),
+                            fontSize = 12.sp,
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .clickable { times.removeAt(index) }
+                                .padding(horizontal = 14.dp, vertical = 6.dp)
+                        )
                     }
                 }
 
-                Button(
-                    onClick = {
+                Pill(
+                    text = "+ Agregar Horario",
+                    background = GreenMuted,
+                    textColor = Color.White,
+                    modifier = Modifier.clickable {
                         val now = Calendar.getInstance()
                         TimePickerDialog(
                             context,
@@ -373,50 +499,33 @@ fun MenuScreen(
                             now.get(Calendar.MINUTE),
                             true
                         ).show()
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = GreenMuted,
-                        contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(50),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("+ Agregar Horario", fontWeight = FontWeight.SemiBold)
-                }
+                    }
+                )
 
-                OutlinedTextField(
+                PillTextField(
                     value = description,
                     onValueChange = { description = it },
-                    placeholder = {
-                        Text(
-                            "Nota / Descripción\nEj: Medicamento 1, 2 tazas de comida",
-                            color = GreenPrimary.copy(alpha = 0.7f)
-                        )
-                    },
-                    minLines = 4,
-                    shape = RoundedCornerShape(20.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = GreenPrimary,
-                        unfocusedTextColor = GreenPrimary,
-                        focusedBorderColor = FieldBeige,
-                        unfocusedBorderColor = FieldBeige
-                    ),
-                    modifier = Modifier.fillMaxWidth()
+                    placeholder = "Agregar Nota",
+                    background = Color.White,
+                    textColor = GreenPrimary,
+                    border = NoteBorder,
+                    textAlign = TextAlign.Center
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
-        OutlinedButton(
+        BigOutlinedButton(
+            text = if (initial == null) "+ Agregar mascota" else "Guardar cambios",
             onClick = {
                 if (name.isBlank()) {
                     Toast.makeText(context, "Ingresa el nombre de la mascota", Toast.LENGTH_SHORT).show()
-                    return@OutlinedButton
+                    return@BigOutlinedButton
                 }
                 if (times.isEmpty()) {
                     Toast.makeText(context, "Agrega al menos un horario", Toast.LENGTH_SHORT).show()
-                    return@OutlinedButton
+                    return@BigOutlinedButton
                 }
                 onSavePet(
                     PetReminder(
@@ -426,26 +535,12 @@ fun MenuScreen(
                         times = times.sorted()
                     )
                 )
-            },
-            shape = RoundedCornerShape(50),
-            border = BorderStroke(2.dp, GreenPrimary),
-            colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.White,
-                contentColor = Color.Black
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-        ) {
-            Text(
-                text = if (initial == null) "+ Añadir mascota" else "Guardar cambios",
-                fontSize = 18.sp
-            )
-        }
+            }
+        )
 
         if (hasSavedReminders) {
             TextButton(onClick = onGoToAlarms, modifier = Modifier.padding(top = 8.dp)) {
-                Text("Ver alarmas guardadas", color = GreenPrimary)
+                Text("Ver alarmas guardadas", color = GreenPrimary, fontSize = 13.sp)
             }
         }
     }
@@ -464,7 +559,7 @@ fun AlarmsScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(CreamBg)
-            .padding(24.dp)
+            .padding(horizontal = 20.dp, vertical = 24.dp)
     ) {
         if (reminders.isEmpty()) {
             Box(
@@ -473,55 +568,50 @@ fun AlarmsScreen(
                     .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No hay recordatorios guardados", color = GreenMuted, fontSize = 18.sp)
+                Text("No hay recordatorios guardados", color = GreenMuted, fontSize = 16.sp)
             }
         } else {
             LazyColumn(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterVertically),
+                contentPadding = PaddingValues(vertical = 12.dp)
             ) {
                 items(reminders, key = { it.id }) { pet ->
-                    Card(
-                        shape = RoundedCornerShape(24.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
+                    WhiteCard {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Pill(
+                                text = pet.name,
+                                background = FieldBeige,
+                                textColor = Color(0xFF3A3A3A),
+                                height = 40.dp,
+                                bold = false,
+                                align = Alignment.CenterStart
+                            )
+
+                            pet.times.forEach { time ->
+                                Pill(
+                                    text = "$time hrs",
+                                    background = GreenPrimary,
+                                    textColor = Color.White,
+                                    height = 46.dp,
+                                    radius = 18.dp
+                                )
+                            }
+
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(FieldBeige, RoundedCornerShape(50))
-                                    .padding(horizontal = 16.dp, vertical = 10.dp)
+                                    .heightIn(min = 110.dp)
+                                    .border(1.dp, NoteBorder, RoundedCornerShape(20.dp))
+                                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                                contentAlignment = Alignment.CenterStart
                             ) {
-                                Text(text = pet.name, color = Color.DarkGray, fontWeight = FontWeight.Medium)
-                            }
-
-                            pet.times.forEach { time ->
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(GreenPrimary, RoundedCornerShape(50))
-                                        .padding(vertical = 10.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(text = "$time hrs", color = Color.White, fontWeight = FontWeight.Bold)
-                                }
-                            }
-
-                            if (pet.description.isNotBlank()) {
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .background(Color.White, RoundedCornerShape(50))
-                                        .padding(vertical = 8.dp, horizontal = 12.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(text = pet.description, color = GreenPrimary, fontSize = 14.sp)
-                                }
+                                Text(
+                                    text = if (pet.description.isNotBlank()) "Nota Agregada\n${pet.description}" else "Sin nota",
+                                    color = GreenPrimary,
+                                    fontSize = 13.sp,
+                                    lineHeight = 18.sp
+                                )
                             }
 
                             Row(
@@ -529,10 +619,10 @@ fun AlarmsScreen(
                                 horizontalArrangement = Arrangement.End
                             ) {
                                 TextButton(onClick = { onEdit(pet) }) {
-                                    Text("Editar", color = GreenPrimary)
+                                    Text("Editar", color = GreenPrimary, fontSize = 13.sp)
                                 }
                                 TextButton(onClick = { onDelete(pet) }) {
-                                    Text("Eliminar", color = Color(0xFFB3261E))
+                                    Text("Eliminar", color = Color(0xFFB3261E), fontSize = 13.sp)
                                 }
                             }
                         }
@@ -541,21 +631,8 @@ fun AlarmsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        OutlinedButton(
-            onClick = onAddOrBackToMenu,
-            shape = RoundedCornerShape(50),
-            border = BorderStroke(2.dp, GreenPrimary),
-            colors = ButtonDefaults.outlinedButtonColors(
-                containerColor = Color.White,
-                contentColor = Color.Black
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-        ) {
-            Text("+ Agregar mascota", fontSize = 18.sp)
-        }
+        BigOutlinedButton(text = "+ Agregar mascota", onClick = onAddOrBackToMenu)
     }
 }
