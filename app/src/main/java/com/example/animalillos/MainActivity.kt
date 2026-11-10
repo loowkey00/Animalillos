@@ -136,8 +136,13 @@ object ReminderStore {
 }
 
 class MainActivity : ComponentActivity() {
+    private var screen by mutableIntStateOf(1)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (intent?.getBooleanExtra(AlarmReceiver.EXTRA_OPEN_ALARMS, false) == true) {
+            screen = 3
+        }
         enableEdgeToEdge()
         setContent {
             AnimalillosTheme {
@@ -154,7 +159,6 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                var screen by remember { mutableIntStateOf(1) }
                 val reminders = remember { mutableStateListOf<PetReminder>().apply { addAll(ReminderStore.load(context)) } }
                 var editingReminder by remember { mutableStateOf<PetReminder?>(null) }
 
@@ -204,6 +208,13 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.getBooleanExtra(AlarmReceiver.EXTRA_OPEN_ALARMS, false)) {
+            screen = 3
         }
     }
 
